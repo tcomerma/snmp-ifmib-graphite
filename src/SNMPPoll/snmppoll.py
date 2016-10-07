@@ -6,8 +6,6 @@ from snimpy.manager import Manager
 from snimpy.manager import load
 from SNMPPoll import logger, config
 
-CONFIG_PATH = '/etc/snmp-poller'
-
 log = logger.logger
 
 
@@ -77,11 +75,15 @@ def poll_device(ip, snmp_community, snmp_version, path, interfaces='all'):
                 iface_name = normalize_ifname(str(iface))
                 path_out = '%s.%s.tx' % (path, iface_name)
                 path_in = '%s.%s.rx' % (path, iface_name)
+                path_ifHighSpeed = '%s.%s.HighSpeed' % (path, iface_name)
                 octets_out = int(m.ifHCOutOctets[index])
                 octets_in = int(m.ifHCInOctets[index])
+                octets_ifHighSpeed = int(m.ifHighSpeed[index])
                 timeseries_out = '%s %s %s' % (path_out, octets_out, TIMESTAMP)
                 timeseries_in = '%s %s %s' % (path_in, octets_in, TIMESTAMP)
-                CARBON_STRINGS.extend([timeseries_out, timeseries_in])
+                timeseries_ifHighSpeed = '%s %s %s' % (path_ifHighSpeed, octets_ifHighSpeed, TIMESTAMP)
+
+                CARBON_STRINGS.extend([timeseries_out, timeseries_in, timeseries_ifHighSpeed])
     return CARBON_STRINGS
 
 
@@ -99,7 +101,7 @@ def normalize_ifname(ifname):
     return '{}{}'.format(name, numbers)
 
 
-def carbon_all(config=config.get_config(CONFIG_PATH)):
+def carbon_all(config):
     '''Creates carbon for each device configured and calls send_carbon()
     :param config: configuration options for devices
     :param type: dict
@@ -147,14 +149,17 @@ def send_carbon(server, timeseries):
     log.debug('-' * 80)
     log.debug(message)
     log.debug('-' * 80)
-    sock.sendall(message)
+    try:
+        sock.sendall(message)
+    except socket.error:
+        log.critical("CRITICAL: Couldn't send metrics to %s.",  server)
 
     log.info('Xfer completed. Closing socket on %s:%d' % server)
     sock.close()
 
 
-def run():
+def run(config_dir):
     '''Initiate the process.
     :params: none
     '''
-    return carbon_all()
+    return carbon_all(config.get_config(config_dir))
