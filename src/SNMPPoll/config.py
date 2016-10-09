@@ -1,10 +1,11 @@
 import os
 import glob
 import yaml
-from SNMPPoll import logger
+import logging
 
+# from SNMPPoll import logger
 
-log = logger.logger
+log = None
 
 def get_config(path):
     '''Return dict of primary .conf merged with $path/conf.d/*.yml
@@ -12,6 +13,7 @@ def get_config(path):
     :type path: str
     :example path: /etc/snmp-poller
     '''
+    log = logging.getLogger('snmp-poller')
     config_file = os.path.join(path, 'snmp-poller.yml')
     with open(config_file) as f:
         config_yml = yaml.load(f)

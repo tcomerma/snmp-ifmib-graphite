@@ -25,3 +25,5 @@ dist
 *.pyc
 *.pyo
 *.tmp*
+*.sav
+snmp-poller.yml
