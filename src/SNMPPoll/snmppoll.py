@@ -138,6 +138,7 @@ def poll_device(ip, snmp_community, snmp_version, path, metrics, interfaces='all
 
 def normalize_ifname(ifname):
     '''Normalizes interfaces for two letter abbreviation and number appended.
+       Added exception. If ifname is 3 char long, allow it
     :param ifname: interface name
     :param type: str
     '''
@@ -146,7 +147,12 @@ def normalize_ifname(ifname):
     if not numbers:
         name = m.group('name').lower()
     else:
-        name = m.group('name')[0:2].lower()
+        if len(m.group('name')) > 3:
+            name = m.group('name')[0:2].lower()
+        else:
+            name = m.group('name').lower()
+    # Replace dots in ifname by underscores (entreme networks uses dots)
+    numbers=numbers.replace ('.','_')
     return '{}{}'.format(name, numbers)
 
 
