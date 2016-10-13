@@ -27,3 +27,4 @@ dist
 *.tmp*
 *.sav
 snmp-poller.yml
+.remote-sync.json
