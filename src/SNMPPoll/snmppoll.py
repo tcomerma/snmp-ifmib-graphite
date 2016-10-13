@@ -63,6 +63,12 @@ def poll_interface(m, path, iface, index, metrics):
         if met == 'ifOutErrors':
             valid_metric=True
             v = int(m.ifOutErrors[index])
+        if met == 'ifHCInUcastPkts':
+            valid_metric=True
+            v = int(m.ifHCInUcastPkts[index])
+        if met == 'ifHCOutUcastPkts':
+            valid_metric=True
+            v = int(m.ifHCOutUcastPkts[index])        
         if valid_metric:
             p = '%s.%s.%s' % (path, iface_name, name)
             ts.append ('%s %s %s' % (p, v, TIMESTAMP))
