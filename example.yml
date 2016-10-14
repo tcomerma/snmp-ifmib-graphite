@@ -18,31 +18,21 @@ coxley:
         ifaces:
             - lag.0.2
             - ge.2.1
+            # Change interface name for an alias
+            - [ge.1.1, internet]
         metrics:
-            - [ ifHCOutOctets, tx ]
-            - [ ifHCinOctets, rx ]
-            - [ ifHighSpeed, speed ]
+            - ifHCOutOctets
+            - ifHCinOctets
+            - ifHighSpeed
+            - ifInDiscards
+            - ifInErrors
+            - ifOutDiscards
+            - ifOutErrors
+            # If you want to change metric name, add an alias like the following
             - [ ifCInMulticastPkts, InMcastPkts]
             - [ ifCOutMulticastPkts, OutMcastPkts]
             - [ ifCInBroadcastPkts, InBcastPkts]
-            - [ ifCOutBroadcastPkts, OutBcastPkts]
-
-# 1.3.6.1.2.1.31.1.1.1.2 (ifInMulticastPkts)
-# 1.3.6.1.2.1.31.1.1.1.3 (ifInBroadcastPkts)
-# 1.3.6.1.2.1.31.1.1.1.4 (ifOutMulticastPkts)
-# 1.3.6.1.2.1.31.1.1.1.5 (ifOutBroadcastPkts)
-# 1.3.6.1.2.1.31.1.1.1.6 (ifHCInOctets)
-# 1.3.6.1.2.1.31.1.1.1.7 (ifHCInUcastPkts)
-# 1.3.6.1.2.1.31.1.1.1.8 (ifHCInMulticastPkts)
-# 1.3.6.1.2.1.31.1.1.1.9 (ifHCInBroadcastPkts)
-# 1.3.6.1.2.1.31.1.1.1.10 (ifHCOutOctets)
-# 1.3.6.1.2.1.31.1.1.1.11 (ifHCOutUcastPkts)
-# 1.3.6.1.2.1.31.1.1.1.12 (ifHCOutMulticastPkts)
-# 1.3.6.1.2.1.31.1.1.1.13 (ifHCOutBroadcastPkts)
-# ifInDiscards (.1.3.6.1.2.1.2.2.1.13)
-# ifInErrors (.1.3.6.1.2.1.2.2.1.14)
-# ifOutDiscards (.1.3.6.1.2.1.2.2.1.19)
-# ifOutErrors (.1.3.6.1.2.1.2.2.1.20)
+            - [ ifCOutBroadcastPkts, broadcasts]
 
     test-asa:
         metric_path: core.hq.firewalls.test-asa

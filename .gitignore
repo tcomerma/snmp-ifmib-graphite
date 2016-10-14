@@ -28,3 +28,4 @@ dist
 *.sav
 snmp-poller.yml
 .remote-sync.json
+TODO.txt

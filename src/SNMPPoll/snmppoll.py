@@ -15,7 +15,7 @@ from SNMPPoll import config
 
 log = None
 
-def poll_interface(m, path, iface, index, metrics):
+def poll_interface(m, path, iface, index, alias, metrics):
     '''Gets information for a single interface
     :iface: interface
     '''
@@ -53,7 +53,6 @@ def poll_interface(m, path, iface, index, metrics):
         if met == 'ifInDiscards':
             valid_metric=True
             v = int(m.ifInDiscards[index])
-
         if met == 'ifOutDiscards':
             valid_metric=True
             v = int(m.ifOutDiscards[index])
@@ -68,7 +67,7 @@ def poll_interface(m, path, iface, index, metrics):
             v = int(m.ifHCInUcastPkts[index])
         if met == 'ifHCOutUcastPkts':
             valid_metric=True
-            v = int(m.ifHCOutUcastPkts[index])        
+            v = int(m.ifHCOutUcastPkts[index])
         if valid_metric:
             p = '%s.%s.%s' % (path, iface_name, name)
             ts.append ('%s %s %s' % (p, v, TIMESTAMP))
@@ -113,32 +112,38 @@ def poll_device(ip, snmp_community, snmp_version, path, metrics, interfaces='all
     except SNMPException:
         log.error('SNMP: Cannot poll host: %s - Is it restricted?', ip)
         return False
-    if interfaces == 'all':
-        log.info('Polling for interfaces: %s', interfaces)
+    if str(interfaces[0]) == 'all':
+        log.debug('Polling for all interfaces')
         for iface in m.ifIndex:
+            log.debug('Polling for interface: %s [%s]', m.ifName[iface], iface)
             if str(m.ifAdminStatus[iface]) == 'up(1)' and \
                     str(m.ifName[iface]) not in NULL_IFS:
-                iface_name = normalize_ifname(str(m.ifName[iface]))
-                path_out = '%s.%s.tx' % (path, iface_name)
-                path_in = '%s.%s.rx' % (path, iface_name)
-                octets_out = int(m.ifHCOutOctets[iface])
-                octets_in = int(m.ifHCInOctets[iface])
-                timeseries_out = '%s %s %s' % (path_out, octets_out, TIMESTAMP)
-                timeseries_in = '%s %s %s' % (path_in, octets_in, TIMESTAMP)
-                CARBON_STRINGS.extend([timeseries_out, timeseries_in])
-    # Need to combine most of this if/els together. Too much being repeated..
+                CARBON_STRINGS.extend(poll_interface (m, path, m.ifName[iface], iface, m.ifName[iface], metrics))
     else:
         if isinstance(interfaces, basestring):
             interface_tmp = interfaces
             interfaces = []
             interfaces.append(interface_tmp)
         elif isinstance(interfaces, list):
-            log.info('Polling for interfaces: %s', ', '.join(interfaces))
-            if_indexes = \
-                {v: k for k, v in m.ifName.iteritems() if v in interfaces}
-            for iface, index in if_indexes.iteritems():
-                CARBON_STRINGS.extend(poll_interface (m, path, iface, index, metrics))
-                # CARBON_STRINGS.extend([timeseries_out, timeseries_in, timeseries_ifHighSpeed])
+            # Split name and alias
+            ifnames=[]
+            ifalias=[]
+            for i in interfaces:
+                if isinstance (i,list):
+                    ifnames.append(i[0])
+                    ifalias.append(i[1])
+                else:
+                    ifnames.append(i)
+                    ifalias.append(i)
+            if_indexes=[]
+            for k, v in m.ifName.iteritems():
+                for i in range (0, len (ifnames)):
+                    if v == ifnames[i]:
+                        if_indexes.append ([k, v, ifalias[i]])
+                        break
+            log.debug('Polling for interfaces: %s', ', '.join(ifnames))
+            for i in if_indexes:
+                CARBON_STRINGS.extend(poll_interface (m, path, i[1], i[0], i[2], metrics))
     return CARBON_STRINGS
 
 
